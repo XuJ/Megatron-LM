@@ -19,7 +19,7 @@ from abc import ABC
 from abc import abstractmethod
 
 from .bert_tokenization import FullTokenizer as FullBertTokenizer
-from .gpt2_tokenization import GPT2Tokenizer
+from .gpt2_tokenization import GPT2Tokenizer, GPT2TokenizerwoMerge
 
 
 def build_tokenizer(args):
@@ -37,8 +37,10 @@ def build_tokenizer(args):
         tokenizer = _BertWordPieceTokenizer(vocab_file=args.vocab_file,
                                             lower_case=False)
     elif args.tokenizer_type == 'GPT2BPETokenizer':
-        assert args.merge_file is not None
-        tokenizer = _GPT2BPETokenizer(args.vocab_file, args.merge_file)
+        if args.merge_file is not None:
+            tokenizer = _GPT2BPETokenizer(args.vocab_file, args.merge_file)
+        else:
+            tokenizer = __GPT2BPETokenizer(args.vocab_file)
     else:
         raise NotImplementedError('{} tokenizer is not '
                                   'implemented.'.format(args.tokenizer_type))
@@ -218,3 +220,46 @@ class _GPT2BPETokenizer(AbstractTokenizer):
     @property
     def eod(self):
         return self.eod_id
+
+
+class __GPT2BPETokenizer(AbstractTokenizer):
+    """Original GPT2 BPE tokenizer."""
+
+    def __init__(self, vocab_file):
+        name = 'GPT2 BPE w/o merge_file'
+        super().__init__(name)
+        self.tokenizer = GPT2TokenizerwoMerge(vocab_file)
+
+    @property
+    def vocab_size(self):
+        return len(self.tokenizer.encoder)
+
+    @property
+    def vocab(self):
+        return self.tokenizer.encoder
+
+    @property
+    def inv_vocab(self):
+        return self.tokenizer.decoder
+
+    def tokenize(self, text):
+        return self.tokenizer.encode(text)
+
+    def detokenize(self, token_ids):
+        return self.tokenizer.decode(token_ids)
+
+    @property
+    def eod(self):
+        return self.tokenizer.eod_id
+
+    @property
+    def pad(self):
+        return self.tokenizer.pad_id
+
+    @property
+    def eod_token(self):
+        return self.tokenizer.eod_token
+
+    @property
+    def pad_token(self):
+        return self.tokenizer.pad_token

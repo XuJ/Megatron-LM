@@ -24,6 +24,8 @@ import logging
 import os
 import regex as re
 from io import open
+from megatron.tokenizer.bert_tokenization import WordpieceTokenizer, load_vocab
+import jieba
 
 try:
     from functools import lru_cache
@@ -319,3 +321,53 @@ class GPT2Tokenizer(object):
                 index += 1
 
         return vocab_file, merge_file, special_tokens_file
+
+
+class GPT2TokenizerwoMerge(object):
+
+    def __init__(self, vocab_file, max_len=None):
+        self.max_len = max_len if max_len is not None else int(1e12)
+        self.encoder = load_vocab(vocab_file)
+        self.decoder = {v:k for k,v in self.encoder.items()}
+        self.wordpiece_tokenizer = WordpieceTokenizer(vocab=self.encoder)
+        self.translator = str.maketrans(" \n", "\u2582\u2583")
+
+    @property
+    def vocab_size(self):
+        return len(self.encoder)
+
+    def __len__(self):
+        return len(self.encoder)
+
+    @property
+    def eod_id(self):
+        return self.encoder[self.eod_token]
+
+    @property
+    def pad_id(self):
+        return self.encoder[self.pad_token]
+
+    @property
+    def eod_token(self):
+        return '<eod>'
+
+    @property
+    def pad_token(self):
+        return '<pad>'
+
+    def tokenize(self, text):
+        """ Tokenize a string. """
+        output_tokens = []
+        for x in jieba.cut(text, cut_all=False):
+            x = x.translate(self.translator)
+            output_tokens.extend(self.wordpiece_tokenizer.tokenize(x))
+        return output_tokens
+
+    def encode(self, text):
+        res = [self.encoder[x] for x in self.tokenize(text)]
+        return res
+
+    def decode(self, tokens):
+        text = ''.join([self.decoder[x] for x in tokens])
+        text = text.replace('\u2582', ' ').replace('\u2583', '\n')
+        return text

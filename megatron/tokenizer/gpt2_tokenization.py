@@ -26,6 +26,7 @@ import regex as re
 from io import open
 from megatron.tokenizer.bert_tokenization import WordpieceTokenizer, load_vocab
 import jieba
+import sentencepiece as spm
 
 try:
     from functools import lru_cache
@@ -324,16 +325,16 @@ class GPT2Tokenizer(object):
 
 
 class GPT2TokenizerwoMerge(object):
-
-    def __init__(self, vocab_file, max_len=None):
+    def __init__(self, vocab_file, vocab_model_file, max_len=None):
         self.max_len = max_len if max_len is not None else int(1e12)
         self.encoder = load_vocab(vocab_file)
         self.decoder = {v:k for k,v in self.encoder.items()}
-        self.wordpiece_tokenizer = WordpieceTokenizer(vocab=self.encoder)
+        self.sp = spm.SentencePieceProcessor(model_file=vocab_model_file)
         self.translator = str.maketrans(" \n", "\u2582\u2583")
 
     @property
     def vocab_size(self):
+        assert len(self.encoder) == len(self.sp)
         return len(self.encoder)
 
     def __len__(self):
@@ -357,17 +358,19 @@ class GPT2TokenizerwoMerge(object):
 
     def tokenize(self, text):
         """ Tokenize a string. """
-        output_tokens = []
-        for x in jieba.cut(text, cut_all=False):
-            x = x.translate(self.translator)
-            output_tokens.extend(self.wordpiece_tokenizer.tokenize(x))
-        return output_tokens
+        seg_list = [x.translate(self.translator) for x in text]
+        new_seg = "".join(seg_list)
+        print(new_seg)
+        print(self.sp.encode(new_seg))
+        return self.sp.encode(new_seg)
 
     def encode(self, text):
-        res = [self.encoder[x] for x in self.tokenize(text)]
+        res = self.tokenize(text)
         return res
 
     def decode(self, tokens):
-        text = ''.join([self.decoder[x] for x in tokens])
-        text = text.replace('\u2582', ' ').replace('\u2583', '\n')
+        print(len(tokens), tokens)
+        text = self.sp.decode(tokens)
+        text = text.replace(' ', '').replace('\u2582', ' ').replace('\u2583', '\n')
+        print(text)
         return text

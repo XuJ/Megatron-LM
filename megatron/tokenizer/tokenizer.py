@@ -40,7 +40,7 @@ def build_tokenizer(args):
         if args.merge_file is not None:
             tokenizer = _GPT2BPETokenizer(args.vocab_file, args.merge_file)
         else:
-            tokenizer = __GPT2BPETokenizer(args.vocab_file)
+            tokenizer = __GPT2BPETokenizer(args.vocab_file, args.vocab_model_file)
     else:
         raise NotImplementedError('{} tokenizer is not '
                                   'implemented.'.format(args.tokenizer_type))
@@ -225,10 +225,10 @@ class _GPT2BPETokenizer(AbstractTokenizer):
 class __GPT2BPETokenizer(AbstractTokenizer):
     """Original GPT2 BPE tokenizer."""
 
-    def __init__(self, vocab_file):
+    def __init__(self, vocab_file, vocab_model_file):
         name = 'GPT2 BPE w/o merge_file'
         super().__init__(name)
-        self.tokenizer = GPT2TokenizerwoMerge(vocab_file)
+        self.tokenizer = GPT2TokenizerwoMerge(vocab_file, vocab_model_file)
 
     @property
     def vocab_size(self):

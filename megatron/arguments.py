@@ -625,6 +625,8 @@ def _add_data_args(parser):
                        help='Path to the vocab file.')
     group.add_argument('--merge-file', type=str, default=None,
                        help='Path to the BPE merge file.')
+    group.add_argument('--vocab-model-file', type=str, default=None,
+                       help='sentenpiece vocab model file.')
     group.add_argument('--seq-length', type=int, default=None,
                        help='Maximum sequence length to process.')
     group.add_argument('--encoder-seq-length', type=int, default=None,

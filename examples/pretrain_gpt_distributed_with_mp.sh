@@ -11,8 +11,9 @@ NODE_RANK=0
 WORLD_SIZE=$(($GPUS_PER_NODE*$NNODES))
 
 DATA_PATH=${HOME}/data/ShangjianTech_concat_txt/gpt2_test_text_document
-CHECKPOINT_PATH=checkpoints/gpt2_distributed_with_mp
+CHECKPOINT_PATH=checkpoints/gpt2_distributed_with_mp_sentencepiece
 TOKENIZER_PATH=${HOME}/data/bpe_3w_new/vocab.json
+VOCAB_MODEL_FILE=${HOME}/data/bpe_3w_new/chinese_vocab.model
 
 DISTRIBUTED_ARGS="--nproc_per_node $GPUS_PER_NODE --nnodes $NNODES --node_rank $NODE_RANK --master_addr $MASTER_ADDR --master_port $MASTER_PORT"
 
@@ -33,6 +34,7 @@ python -m torch.distributed.launch $DISTRIBUTED_ARGS \
        --load $CHECKPOINT_PATH \
        --data-path "$DATA_PATH" \
        --vocab-file "$TOKENIZER_PATH" \
+       --vocab-model-file "$VOCAB_MODEL_FILE" \
        --data-impl mmap \
        --split 949,50,1 \
        --distributed-backend nccl \

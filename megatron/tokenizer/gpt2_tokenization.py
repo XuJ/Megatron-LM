@@ -360,8 +360,6 @@ class GPT2TokenizerwoMerge(object):
         """ Tokenize a string. """
         seg_list = [x.translate(self.translator) for x in text]
         new_seg = "".join(seg_list)
-        print(new_seg)
-        print(self.sp.encode(new_seg))
         return self.sp.encode(new_seg)
 
     def encode(self, text):
@@ -369,8 +367,6 @@ class GPT2TokenizerwoMerge(object):
         return res
 
     def decode(self, tokens):
-        print(len(tokens), tokens)
         text = self.sp.decode(tokens)
         text = text.replace(' ', '').replace('\u2582', ' ').replace('\u2583', '\n')
-        print(text)
         return text

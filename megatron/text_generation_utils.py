@@ -135,7 +135,7 @@ def generate_samples_input_from_file(model):
                         continue
             else:
                 context_tokens = tokenizer.tokenize("空文本")
-                context_length = len(context_tokens)
+                context_length = 0
 
             input_info = [terminate_runs, raw_text_len, context_length]
             input_info_tensor = torch.cuda.LongTensor(input_info)
@@ -147,9 +147,6 @@ def generate_samples_input_from_file(model):
 
             if terminate_runs == 1:
                 return
-
-            if context_length < args.seq_length:
-                context_tokens.extend([tokenizer.pad] * (args.seq_length - context_length))
 
             # For pipeline parallel we send context tokens to other stages
             # so they get the lengths correct
@@ -193,9 +190,6 @@ def generate_samples_input_from_file(model):
 
             raw_text = None
             context_count += 1
-
-            if args.sample_input_file:
-                break
 
 
 def generate_samples_interactive(model, print_frequency=24):

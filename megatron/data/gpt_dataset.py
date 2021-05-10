@@ -319,6 +319,7 @@ def _build_index_mappings(name, data_prefix, documents, sizes,
     print_rank_0('    total number of samples: {}'.format(
         sample_idx.shape[0]))
     print_rank_0('    total number of epochs: {}'.format(num_epochs))
+    print_rank_0('    number of tokens in each epoch: {}'.format(tokens_per_epoch))
 
     return doc_idx, sample_idx, shuffle_idx
 
